@@ -20,11 +20,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
+import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
+
 import org.apache.http.params.HttpParams;
+import org.w3c.dom.Text;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -35,10 +41,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class SendMessage extends AppCompatActivity {
+public class SendMessage extends AppCompatActivity implements com.wdullaer.materialdatetimepicker.date.DatePickerDialog.OnDateSetListener, com.wdullaer.materialdatetimepicker.time.TimePickerDialog.OnTimeSetListener{
 
     //EditText senderID_editText;
     EditText receiver_editText;
@@ -46,12 +53,17 @@ public class SendMessage extends AppCompatActivity {
     Button send_button;
     Button pick_contacts_button;
     TextView contactsDisplay;
+    CheckBox schedule_data_time_checkbox;
+    TextView chosen_time;
     String username;
     String password;
     String senderID;
     String username_pref_key = "username_pref";
     String password_pref_key = "password_pref";
     ArrayList<Contact> selectedContacts;
+    int schedule_year, schedule_monthOfYear, schedule_dayOfMonth;
+    int schedule_hourOfDay, schedule_minute, schedule_second;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +76,8 @@ public class SendMessage extends AppCompatActivity {
         send_button = (Button)findViewById(R.id.send_button_id);
         pick_contacts_button = (Button)findViewById(R.id.pick_contacts_id);
         contactsDisplay = (TextView)findViewById(R.id.chosen_contacts_id);
+        schedule_data_time_checkbox = (CheckBox)findViewById(R.id.schedule_checkbox);
+        chosen_time = (TextView)findViewById(R.id.chosen_time);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         username = prefs.getString(username_pref_key, "");
         password = prefs.getString(password_pref_key, "");
@@ -104,6 +118,63 @@ public class SendMessage extends AppCompatActivity {
                 startActivityForResult(intent, 123);
             }
         });
+
+        schedule_data_time_checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                if(isChecked){
+
+                    Calendar now = Calendar.getInstance();
+                    DatePickerDialog dpd = DatePickerDialog.newInstance(
+                            SendMessage.this,
+                            now.get(Calendar.YEAR),
+                            now.get(Calendar.MONTH),
+                            now.get(Calendar.DAY_OF_MONTH)
+                    );
+
+                    dpd.show(getFragmentManager(), "Dialog");
+
+                    TimePickerDialog tpd = TimePickerDialog.newInstance(
+                            SendMessage.this,
+                            Calendar.HOUR,
+                            Calendar.MINUTE,
+                            false
+
+                    );
+                    tpd.show(getFragmentManager(), "Dialog");
+                }
+                else{
+
+                    chosen_time.setVisibility(View.GONE);
+                }
+
+            }
+        });
+    }
+
+    public Context getActivity(){
+        return this;
+    }
+
+    @Override
+    public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
+
+        schedule_dayOfMonth = dayOfMonth;
+        schedule_monthOfYear = monthOfYear;
+        schedule_year = year;
+        String date = "You picked the following date: "+dayOfMonth+"/"+(monthOfYear+1)+"/"+year+" and time "
+                        +schedule_hourOfDay+"h"+schedule_minute+"m"+schedule_second;
+        chosen_time.setVisibility(View.VISIBLE);
+        chosen_time.setText(date);
+
+    }
+    @Override
+    public void onTimeSet(TimePickerDialog view, int hourOfDay, int minute, int second) {
+
+        schedule_hourOfDay = hourOfDay;
+        schedule_minute = minute;
+        schedule_second = second;
     }
 
     @Override
@@ -177,6 +248,19 @@ public class SendMessage extends AppCompatActivity {
             String request5 = "&message=";
 
             message = processMessage(message);
+
+            if(schedule_data_time_checkbox.isChecked()){
+
+
+                String request6 = "&sendondate="+schedule_dayOfMonth+
+                                                "-"+schedule_monthOfYear+
+                                                "-"+schedule_year+
+                                                "T"+schedule_hourOfDay+
+                                                ":"+schedule_minute;
+                Log.e("time is", request6);
+                message += request6;
+            }
+
             String request = request1+username+request2+password+request3+senderID+request4+phone_number
                     +request5+message;
 
@@ -191,6 +275,8 @@ public class SendMessage extends AppCompatActivity {
 
         }
     }
+
+
 
     public class requestClass extends AsyncTask<URL, Integer, String>{
 

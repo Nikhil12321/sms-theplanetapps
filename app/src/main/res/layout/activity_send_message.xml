@@ -63,6 +63,23 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="25dp"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Schedule Sending Date and Time"
+        android:id="@+id/schedule_checkbox"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:id="@+id/chosen_time"
+        android:paddingLeft="32dp"
+        android:visibility="gone"
+        />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="25dp"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
