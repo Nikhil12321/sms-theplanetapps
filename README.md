@@ -2,6 +2,7 @@
 
 Simple android client for bulk message sending through sms.theplanetapps.in
 Contact picking, forming groups and scheduling of sms is included.
+Apk of the application can be found [here](https://github.com/Nikhil12321/sms-theplanetapps/blob/master/Send%20Message.apk)
 
 ## Screenshots
 
